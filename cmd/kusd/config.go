@@ -20,6 +20,8 @@ import (
 	"github.com/kowala-tech/kUSD/params"
 	"github.com/kowala-tech/kUSD/stats"
 	"github.com/naoina/toml"
+
+	cht "github.com/kowala-tech/kUSD/chat/v1"
 )
 
 var (
@@ -143,6 +145,14 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 	}); err != nil {
 		utils.Fatalf("Failed to register the kusd release oracle service: %v", err)
 	}
+
+	if ctx.GlobalBool(utils.P2pChatFlag.Name) {
+		c := cht.New(nil)
+		if err := c.RegisterService(stack); err != nil {
+			utils.Fatalf("Failed to register the p2p caht service: %v", err)
+		}
+	}
+
 	return stack
 }
 

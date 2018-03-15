@@ -9,4 +9,4 @@ Every message has a room selector, it can be used by interface applications and 
 The P2P Chat has public API in cht namespace available by RPC on every node starting the Chat nd the RPC services.
 
 
-Copied from https://github.com/sudachen/playground/chat. Look for details in original repository.
+Copied from https://github.com/sudachen/playground/tree/master/chat. Look for details in original repository.

@@ -8,7 +8,7 @@ import (
 	"github.com/kowala-tech/kUSD/log"
 )
 
-const apiExpireTimeout = time.Minute
+const apiExpireTimeout = 5*time.Minute
 
 type ChatAPI struct {
 	c        *Chat

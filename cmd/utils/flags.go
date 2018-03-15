@@ -455,6 +455,13 @@ var (
 		Usage: "Suggested gas price is the given percentile of a set of recent transaction gas prices",
 		Value: kusd.DefaultConfig.GPO.Percentile,
 	}
+
+	// p2p Chat options
+	P2pChatFlag = cli.BoolFlag{
+		Name:  "p2p-chat",
+		Usage: "Enable p2p chat service",
+	}
+
 )
 
 // MakeDataDir retrieves the currently requested data directory, terminating

@@ -9,6 +9,7 @@ import (
 	"github.com/kowala-tech/kUSD/log"
 	"github.com/kowala-tech/kUSD/p2p"
 	"github.com/kowala-tech/kUSD/rpc"
+	ethn "github.com/kowala-tech/kUSD/node"
 )
 
 const (
@@ -291,4 +292,13 @@ func (c *Chat) get(oldIndex uint64) (uint64, *message) {
 
 func (c *Chat) enqueue(m *message) {
 	c.queue <- m
+}
+
+func (c *Chat) RegisterService(stack *ethn.Node) error {
+	if err := stack.Register(func(n *ethn.ServiceContext) (ethn.Service, error){
+		return c, nil
+	}); err != nil {
+		return err
+	}
+	return nil
 }

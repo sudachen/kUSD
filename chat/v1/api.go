@@ -5,7 +5,7 @@ import (
 	"time"
 	"encoding/json"
 
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/kowala-tech/kUSD/log"
 )
 
 const apiExpireTimeout = time.Minute

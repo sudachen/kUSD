@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto/sha3"
+	"github.com/kowala-tech/kUSD/common"
+	"github.com/kowala-tech/kUSD/crypto/sha3"
 )
 
 type Message struct {

@@ -1,12 +1,12 @@
 package main
 
 import (
-	"github.com/ethereum/go-ethereum/console"
-	ethn "github.com/ethereum/go-ethereum/node"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/kowala-tech/kUSD/console"
+	ethn "github.com/kowala-tech/kUSD/node"
+	"github.com/kowala-tech/kUSD/params"
 	"github.com/sudachen/misc/out"
-	cht "github.com/sudachen/playground/chat/v1"
-	_ "github.com/sudachen/playground/log/ethereum"
+	cht "github.com/kowala-tech/kUSD/chat/v1"
+	_ "github.com/kowala-tech/kUSD/chat/log"
 )
 
 func runConsole(listenAddr string) (err error) {

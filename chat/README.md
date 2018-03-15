@@ -7,3 +7,6 @@ The P2P Chat copies and store board messages temporarily over p2p network on eve
 Every message has a room selector, it can be used by interface applications and bots to grouping messages into chatting spaces.
 
 The P2P Chat has public API in cht namespace available by RPC on every node starting the Chat nd the RPC services.
+
+
+Copied from https://github.com/sudachen/playground/chat. Look for details in original repository.

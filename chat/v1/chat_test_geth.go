@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/console"
-	ethn "github.com/ethereum/go-ethereum/node"
-	"github.com/ethereum/go-ethereum/params"
-	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/kowala-tech/kUSD/console"
+	ethn "github.com/kowala-tech/kUSD/node"
+	"github.com/kowala-tech/kUSD/params"
+	"github.com/kowala-tech/kUSD/rpc"
 )
 
 func flagset(a ...string) *flag.FlagSet {

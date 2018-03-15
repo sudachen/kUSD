@@ -5,16 +5,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/kowala-tech/kUSD/common"
 	"github.com/sudachen/misc/out"
-	_ "github.com/sudachen/playground/log/ethereum"
+	_ "github.com/kowala-tech/kUSD/chat/log"
 )
 
 const chatNodesCount = 6
 const chatMesgsCount = 2
 
 func init() {
-	out.Warn.SetCurrent()
+	out.Error.SetCurrent()
 }
 
 func TestPropagation(t *testing.T) {

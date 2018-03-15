@@ -6,11 +6,11 @@ import (
 	"net"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/ethereum/go-ethereum/p2p/discover"
-	"github.com/ethereum/go-ethereum/p2p/nat"
+	"github.com/kowala-tech/kUSD/common"
+	"github.com/kowala-tech/kUSD/crypto"
+	"github.com/kowala-tech/kUSD/p2p"
+	"github.com/kowala-tech/kUSD/p2p/discover"
+	"github.com/kowala-tech/kUSD/p2p/nat"
 )
 
 const keysCount = 32

@@ -8,7 +8,7 @@ Every message has a room selector, it can be used by interface applications and 
 
 The P2P Chat has public API in cht namespace available by RPC on every node starting the Chat nd the RPC services.
 
-There are for principal classes: Chat, ring, peer, and ChatAPI. 
+There are four principal entities: Chat, ring, peer, and ChatAPI. 
 
 Logically ring is an infinity queue of messages passing through the p2p node. Of cause actually, there is no infinity queue. There is a cycle-buffer containing a limited count of messages. Also, the ring contains hashes of all passed and not expired messages to prevent double passing. ChatAPI and peers can enqueue new messages to the ring using the ring.enqueue function. Also, peers can get messages from the ring using ring.get function. 
 

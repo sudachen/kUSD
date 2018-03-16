@@ -22,7 +22,7 @@ When a peer connected to the p2p node, peer.broadcast goroutine starts to send m
 
 The chat application which user uses to communicate over p2p can access to messages by that ChatAPI. It has two methods: ChatAPI.Post and ChatAPI.Poll. To starts gather messages user need to call ChatAPI.Pool('room to pool') firstly. It starts watcher for the selected room. Then the user can send messages to the room by ChatAPI.Post and getting messages by ChatAPI.Pool.
 
-The ChatAPI is availabe through cht namespace
+The ChatAPI is availabe in cht namespace
 ```text
 >go run node.go
 Welcome to the kUSD JavaScript console!

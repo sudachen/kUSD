@@ -3,14 +3,14 @@ package log
 import(
 	"github.com/kowala-tech/kUSD/log"
 	"github.com/sudachen/misc/out"
-	"fmt"
-	"strings"
 )
 
-type lgx struct {}
+type lgx struct {
+	f log.Format
+}
 
 func init() {
-	log.Root().SetHandler(&lgx{})
+	log.Root().SetHandler(&lgx{log.TerminalFormat(false)})
 }
 
 func level(lvl log.Lvl) out.Level {
@@ -26,11 +26,9 @@ func level(lvl log.Lvl) out.Level {
 }
 
 func (l *lgx) Log(r *log.Record) error {
-	a := make([]string,len(r.Ctx)+1)
-	a[0] = r.Msg
-	for i, x := range r.Ctx {
-		a[i+1] = fmt.Sprint(x)
+	lvl := level(r.Lvl)
+	if lvl.Visible() {
+		lvl.Write(l.f.Format(r))
 	}
-	level(r.Lvl).Print(strings.Join(a," "))
 	return nil
 }

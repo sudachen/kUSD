@@ -46,7 +46,7 @@ func TestPropagation(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// waiting until all nodes recive END message
+	// waiting until all nodes receive END message
 	for j, n := range ns {
 		succeeded := false
 	WaitForEndMesg:
@@ -67,7 +67,7 @@ func TestPropagation(t *testing.T) {
 		out.Info.Printf("%s\n\t%s", h.Hex(), s)
 	}
 
-	// check all nodes recived all test messages
+	// check all nodes received all test messages
 	for j, n := range ns {
 		count := 0
 		for v := range hs {

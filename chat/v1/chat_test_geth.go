@@ -14,6 +14,8 @@ import (
 	ethn "github.com/kowala-tech/kUSD/node"
 	"github.com/kowala-tech/kUSD/params"
 	"github.com/kowala-tech/kUSD/rpc"
+	"github.com/sudachen/misc/out"
+	"github.com/fatih/color"
 )
 
 func flagset(a ...string) *flag.FlagSet {
@@ -115,6 +117,7 @@ type conn struct {
 }
 
 func (c *conn) Eval(js string) (string, error) {
+	color.NoColor = true
 	c.prnt.Reset()
 	c.cons.Evaluate(js)
 	output := c.prnt.String()
@@ -141,10 +144,18 @@ func (c *conn) Poll(room string) (ms []*Message, err error) {
 	if err != nil {
 		return
 	}
-	if r != "null" && r != "" {
-		var s string
-		err = json.Unmarshal([]byte(r), &s)
-		err = json.Unmarshal([]byte(s), &ms)
+	if r == "\"null\"" || r == "\"\"" { return }
+	var s string
+	err = json.Unmarshal([]byte(r), &s)
+	if err != nil {
+		out.Error.Print("R:",r)
+		return nil,err
+	}
+	if s == "null" || s == "" { return }
+	err = json.Unmarshal([]byte(s), &ms)
+	if err != nil {
+		out.Error.Print("S:",s)
+		return nil, err
 	}
 	return
 }

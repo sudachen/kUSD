@@ -53,9 +53,6 @@ func runConsole(listenAddr string) (err error) {
 	}
 
 	defer cons.Stop(true)
-
-	cons.Evaluate(cht.Console_JS)
-
 	cons.Welcome()
 	cons.Interactive()
 
@@ -63,7 +60,7 @@ func runConsole(listenAddr string) (err error) {
 }
 
 func init() {
-	out.Trace.SetCurrent()
+	out.Warn.SetCurrent()
 }
 
 func main() {

@@ -5,7 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/kowala-tech/kUSD/common"
 	"github.com/kowala-tech/kUSD/log"
 	"github.com/kowala-tech/kUSD/p2p"
 	"github.com/kowala-tech/kUSD/rpc"
@@ -49,18 +48,24 @@ type Chat struct {
 
 type ring struct {
 	mu         sync.Mutex
-	known      map[common.Hash]int64
+	known      map[Hash]int64
 	bf         [messageRingLength]*message
 	head, tail uint64
 }
 
-func (r *ring) expire() {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	for k, d := range r.known {
-		if d > time.Now().Unix() {
-			delete(r.known, k)
+func (r *ring) expire(quit chan struct{}) {
+	clock := time.NewTicker(expireTimeout)
+	for {
+		if done2(quit, clock.C) {
+			return
 		}
+		r.mu.Lock()
+		for k, d := range r.known {
+			if d > time.Now().Unix() {
+				delete(r.known, k)
+			}
+		}
+		r.mu.Unlock()
 	}
 }
 
@@ -78,6 +83,9 @@ func (r *ring) put(m *message) {
 	if r.tail == r.head+messageRingLength {
 		r.head += 1
 	}
+
+	log.Trace("put to ring", "hash", m.hash(), "index", r.tail, "hash")
+
 	r.bf[index] = m
 	r.known[hash] = dt
 	r.tail += 1
@@ -104,7 +112,7 @@ func New(cfg *Config) *Chat {
 
 	c := &Chat{
 		cfg:      *cfg,
-		ring:     &ring{known: make(map[common.Hash]int64)},
+		ring:     &ring{known: make(map[Hash]int64)},
 		queue:    make(chan *message, messageQueueLimit),
 		quit:     make(chan struct{}),
 		watchers: make([]Watcher, 0),
@@ -161,16 +169,6 @@ func (c *Chat) dequeue() {
 	}
 }
 
-func (c *Chat) expire() {
-	clock := time.NewTicker(expireTimeout)
-	for {
-		if done2(c.quit, clock.C) {
-			return
-		}
-		c.ring.expire()
-	}
-}
-
 func (c *Chat) watch() {
 	delay := time.NewTicker(watchTimeout)
 	var index uint64
@@ -183,10 +181,10 @@ func (c *Chat) watch() {
 		index, m = c.ring.get(index)
 		for m != nil {
 
-			log.Trace("watch", "m", m)
+			log.Trace("watch", "hash", m.hash())
 
 			if mesg, err := m.open(); err != nil {
-				log.Error("mesg open error", m, err)
+				log.Error("mesg open error", "m", m, "err", err)
 			} else {
 				c.watchMesg(mesg)
 			}
@@ -218,8 +216,8 @@ func (c *Chat) handlePeer(p2 *p2p.Peer, rw p2p.MsgReadWriter) error {
 func (c *Chat) Start(server *p2p.Server) error {
 	log.Info("started chat v." + ProtocolVersionStr)
 	go c.dequeue()
-	go c.expire()
 	go c.watch()
+	go c.ring.expire(c.quit)
 	return nil
 }
 

@@ -27,9 +27,9 @@ func (api *ChatAPI) Version() string {
 	return ProtocolVersionStr
 }
 
-func (api *ChatAPI) Post(m *Message) (bool, error) {
-	log.Trace("cht.post", "message", m)
-	if err := api.c.Send(m); err != nil {
+func (api *ChatAPI) Post(mesg *Message) (bool, error) {
+	log.Trace("cht.post", "mesg", mesg)
+	if err := api.c.Send(mesg); err != nil {
 		return false, err
 	}
 	return true, nil
@@ -90,13 +90,13 @@ type watcher struct {
 	*ChatAPI
 }
 
-func (w *watcher) Watch(m *Message) {
+func (w *watcher) Watch(mesg *Message) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
-	log.Trace("cht.watch", "m", m)
+	log.Trace("cht.watch", "mesg", mesg)
 
-	if x, ok := w.rooms[m.Room]; ok {
-		w.rooms[m.Room] = append(x, m)
+	if x, ok := w.rooms[mesg.Room]; ok {
+		w.rooms[mesg.Room] = append(x, mesg)
 	}
 }

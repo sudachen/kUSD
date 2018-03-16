@@ -55,7 +55,7 @@ type node struct {
 	id      *ecdsa.PrivateKey
 	server  *p2p.Server
 	filerID string
-	hashes  map[common.Hash]struct{}
+	hashes  map[Hash]struct{}
 }
 
 type nodes []*node
@@ -74,7 +74,7 @@ func initialize(nodesCount int, t *testing.T) (ns nodes) {
 	for i := 0; i < nodesCount; i++ {
 		var node node
 
-		node.hashes = make(map[common.Hash]struct{})
+		node.hashes = make(map[Hash]struct{})
 		node.c = New(nil)
 		node.c.Start(nil)
 
@@ -136,10 +136,10 @@ func (ns nodes) stop() {
 	}
 }
 
-func (n *node) send(room, text string) (common.Hash, error) {
+func (n *node) send(room, text string) (Hash, error) {
 	m := &message{}
 	if err := m.seal(&Message{Room: room, Text: text, TTL: 10000}); err != nil {
-		return common.Hash{}, err
+		return Hash{}, err
 	}
 	n.c.enqueue(m)
 	return m.hash(), nil

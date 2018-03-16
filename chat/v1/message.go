@@ -4,10 +4,16 @@ import (
 	"bytes"
 	"errors"
 	"time"
+	"crypto/sha1"
 
 	"github.com/kowala-tech/kUSD/common"
-	"github.com/kowala-tech/kUSD/crypto/sha3"
 )
+
+type Hash [20]byte
+
+func (h Hash) String() string {
+	return common.Bytes2Hex(h[:])
+}
 
 type Message struct {
 	Room      string `json:"room"`
@@ -26,15 +32,15 @@ func (mesg *Message) EqualNoStamp(a *Message) bool {
 		mesg.TTL == a.TTL
 }
 
-func (mesg *Message) Hash() common.Hash {
+func (mesg *Message) Hash() Hash {
 	var m message
 	m.encode(mesg, mesg.Timestamp)
 	return m.hash()
 }
 
 type message struct {
-	cDeathtime int64        // cached death time
-	cHash      *common.Hash // cached message hash
+	cDeathtime int64  // cached death time
+	cHash      *Hash  // cached message hash
 	body       []byte
 }
 
@@ -51,12 +57,10 @@ func (m *message) deathTime() int64 {
 	return m.cDeathtime
 }
 
-func (m *message) hash() common.Hash {
+func (m *message) hash() Hash {
 	if m.cHash == nil {
-		m.cHash = &common.Hash{}
-		d := sha3.NewKeccak256()
-		d.Write(m.body)
-		d.Sum(m.cHash[:0])
+		h := Hash(sha1.Sum(m.body))
+		m.cHash = &h
 	}
 	return *m.cHash
 }

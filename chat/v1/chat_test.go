@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kowala-tech/kUSD/common"
 	"github.com/sudachen/misc/out"
 	_ "github.com/kowala-tech/kUSD/chat/log"
 )
@@ -21,7 +20,7 @@ func TestPropagation(t *testing.T) {
 	ns := initialize(chatNodesCount, t)
 	out.Info.Printf("%d nodes started", len(ns))
 
-	hs := make(map[common.Hash]string)
+	hs := make(map[Hash]string)
 
 	<-time.After(5 * time.Second)
 	out.Info.Print("SENDING MESSAGES ...")
@@ -64,7 +63,7 @@ func TestPropagation(t *testing.T) {
 
 	out.Info.Print("CHECKING PROPAGATION FOR MESSAGES")
 	for h, s := range hs {
-		out.Info.Printf("%s\n\t%s", h.Hex(), s)
+		out.Info.Printf("%v\n\t%v", h, s)
 	}
 
 	// check all nodes received all test messages

@@ -17,3 +17,25 @@ The ring.get function has one argument - index of the message. Since ring does n
 When a peer connected to the p2p node, peer.broadcast goroutine starts to send messages from the ring starting at 0 to the connected peer. It has some performance problem and can be optimized, but for simple messaging service with small ring size, it's not so important. 
 
 The chat application which user uses to communicate over p2p can access to messages by that ChatAPI. It has two methods: ChatAPI.Post and ChatAPI.Poll. To starts gather messages user need to call ChatAPI.Pool('room to pool') firstly. It starts watcher for the selected room. Then the user can send messages to the room by ChatAPI.Post and getting messages by ChatAPI.Pool.
+
+The ChatAPI is availabe through cht namespace
+```text
+>go run node.go
+Welcome to the kUSD JavaScript console!
+
+instance: test-cht/v1.0.0-unstable/windows-amd64/go1.10
+ modules: admin:1.0 cht:1.0 debug:1.0 rpc:1.0 web3:1.0
+
+> cht.poll(".")
+null
+> cht.post({room:".",text:"hello!",ttl:10000})
+true
+> cht.poll(".")
+[{
+    nickname: "",
+    room: ".",
+    text: "hello!",
+    timestamp: 1521218876,
+    ttl: 10000
+}]
+```

@@ -14,18 +14,19 @@ const batchLength = 10
 const broadcastTimeout = 100 * time.Millisecond
 
 type peer struct {
-	c    *Chat
+	ring *ring
 	p2   *p2p.Peer
 	rw   p2p.MsgReadWriter
-	quit chan struct{}
+
+	cfg *Config
 }
 
-func newPeer(c *Chat, p2 *p2p.Peer, rw p2p.MsgReadWriter) *peer {
+func newPeer(ring *ring, p2 *p2p.Peer, rw p2p.MsgReadWriter, cfg *Config) *peer {
 	p := &peer{
-		c,
+		ring,
 		p2,
 		rw,
-		make(chan struct{}),
+		cfg,
 	}
 	return p
 }
@@ -35,36 +36,26 @@ func (p *peer) ID() []byte {
 	return id[:]
 }
 
-func (p *peer) start() {
-	go p.broadcast()
-	p.c.attach(p)
-}
-
-func (p *peer) stop() {
-	p.c.detach(p)
-	close(p.quit)
-}
-
-func (p *peer) broadcast() {
+func (p *peer) broadcast(quit chan struct{}) {
 	t := time.NewTicker(broadcastTimeout)
 	var index uint64
 	batch := make([][]byte, batchLength)
 	for {
-		if done2(p.quit, t.C) {
+		if done2(quit, t.C) {
 			return
 		}
 		now := time.Now().Unix()
 		n := 0
-		i, m := p.c.get(index)
+		i, m := p.ring.get(index)
 		for m != nil && n < batchLength {
 			if m.deathTime() > now {
 				batch[n] = m.body
 				n++
 			}
-			if done(p.quit) {
+			if done(quit) {
 				return
 			}
-			i, m = p.c.get(i)
+			i, m = p.ring.get(i)
 		}
 
 		if n != 0 {
@@ -80,7 +71,6 @@ func (p *peer) broadcast() {
 
 func (p *peer) handshake() error {
 	log.Trace("starting handshake with peer", p.ID())
-
 	ec := make(chan error, 1)
 	go func() {
 		ec <- p2p.SendItems(p.rw, statusCode, ProtocolVersion)
@@ -113,12 +103,9 @@ func (p *peer) handshake() error {
 
 func (p *peer) loop() error {
 
-	if err := p.handshake(); err != nil {
-		return nil
-	}
-
-	p.start()
-	defer p.stop()
+	quit := make(chan struct{})
+	go p.broadcast(quit)
+	defer close(quit)
 
 	for {
 		pkt, err := p.rw.ReadMsg()
@@ -126,7 +113,7 @@ func (p *peer) loop() error {
 			log.Warn("message loop", "peer", p.ID(), "err", err)
 			return err
 		}
-		if pkt.Size > p.c.MaxP2pMessageSize() {
+		if pkt.Size > uint32(p.cfg.MaxP2pMessageSize) {
 			log.Warn("oversized packet received", "peer", p.ID())
 			return errors.New("oversized packet received")
 		}
@@ -149,7 +136,7 @@ func (p *peer) loop() error {
 					log.Error("bad message received, peer will be disconnected", "peer", p.ID(), "err", err)
 					return errors.New("invalid message")
 				}
-				p.c.enqueue(m)
+				p.ring.enqueue(m)
 			}
 		}
 	}

@@ -38,71 +38,10 @@ type Chat struct {
 	watchers []Watcher
 	pmu      sync.Mutex
 	peers    map[*peer]struct{}
-
-	ring  *ring
-	queue chan *message
-	quit  chan struct{}
+	ring     *ring
+	quit     chan struct{}
 
 	cfg Config
-}
-
-type ring struct {
-	mu         sync.Mutex
-	known      map[Hash]int64
-	bf         [messageRingLength]*message
-	head, tail uint64
-}
-
-func (r *ring) expire(quit chan struct{}) {
-	clock := time.NewTicker(expireTimeout)
-	for {
-		if done2(quit, clock.C) {
-			return
-		}
-		r.mu.Lock()
-		for k, d := range r.known {
-			if d > time.Now().Unix() {
-				delete(r.known, k)
-			}
-		}
-		r.mu.Unlock()
-	}
-}
-
-func (r *ring) put(m *message) {
-	hash := m.hash()    // can take a time
-	dt := m.deathTime() // can take a time
-
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	if _, ok := r.known[hash]; ok {
-		return
-	}
-
-	index := r.tail % messageRingLength
-	if r.tail == r.head+messageRingLength {
-		r.head += 1
-	}
-
-	log.Trace("put to ring", "hash", m.hash(), "index", r.tail, "hash")
-
-	r.bf[index] = m
-	r.known[hash] = dt
-	r.tail += 1
-}
-
-func (r *ring) get(oldIndex uint64) (newIndex uint64, m *message) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	newIndex = oldIndex
-	if r.head > newIndex {
-		newIndex = r.head
-	}
-	if newIndex < r.tail {
-		m = r.bf[newIndex%messageRingLength]
-		newIndex += 1
-	}
-	return
 }
 
 func New(cfg *Config) *Chat {
@@ -112,8 +51,7 @@ func New(cfg *Config) *Chat {
 
 	c := &Chat{
 		cfg:      *cfg,
-		ring:     &ring{known: make(map[Hash]int64)},
-		queue:    make(chan *message, messageQueueLimit),
+		ring:     newRing(),
 		quit:     make(chan struct{}),
 		watchers: make([]Watcher, 0),
 		peers:    make(map[*peer]struct{}),
@@ -158,17 +96,6 @@ func (c *Chat) APIs() []rpc.API {
 	}
 }
 
-func (c *Chat) dequeue() {
-	for {
-		select {
-		case <-c.quit:
-			return
-		case m := <-c.queue:
-			c.ring.put(m)
-		}
-	}
-}
-
 func (c *Chat) watch() {
 	delay := time.NewTicker(watchTimeout)
 	var index uint64
@@ -210,13 +137,19 @@ func (c *Chat) watchMesg(mesg *Message) {
 }
 
 func (c *Chat) handlePeer(p2 *p2p.Peer, rw p2p.MsgReadWriter) error {
-	return newPeer(c, p2, rw).loop()
+	p := newPeer(c.ring, p2, rw, &c.cfg)
+	if err := p.handshake(); err != nil {
+		return err
+	}
+	c.attach(p)
+	defer c.detach(p)
+	return p.loop()
 }
 
 func (c *Chat) Start(server *p2p.Server) error {
 	log.Info("started chat v." + ProtocolVersionStr)
-	go c.dequeue()
 	go c.watch()
+	go c.ring.dequeue(c.quit)
 	go c.ring.expire(c.quit)
 	return nil
 }
@@ -258,6 +191,10 @@ func (c *Chat) Unsubscribe(w Watcher) error {
 	return NotSubscribedError
 }
 
+func (c *Chat) enqueue(m *message) {
+	c.ring.enqueue(m)
+}
+
 func (c *Chat) Send(mesg *Message) error {
 	m := &message{}
 	log.Trace("send", "mesg", mesg)
@@ -286,10 +223,6 @@ func (c *Chat) detach(p *peer) {
 
 func (c *Chat) get(oldIndex uint64) (uint64, *message) {
 	return c.ring.get(oldIndex)
-}
-
-func (c *Chat) enqueue(m *message) {
-	c.queue <- m
 }
 
 func (c *Chat) RegisterService(stack *ethn.Node) error {

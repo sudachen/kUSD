@@ -22,7 +22,6 @@ func TestPropagation(t *testing.T) {
 
 	hs := make(map[Hash]string)
 
-	<-time.After(5 * time.Second)
 	out.Info.Print("SENDING MESSAGES ...")
 
 	// sending unique messages via every node

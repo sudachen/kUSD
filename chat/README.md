@@ -8,5 +8,12 @@ Every message has a room selector, it can be used by interface applications and 
 
 The P2P Chat has public API in cht namespace available by RPC on every node starting the Chat nd the RPC services.
 
+There are for principal classes: Chat, ring, peer, and ChatAPI. 
 
-Copied from https://github.com/sudachen/playground/tree/master/chat. Look for details in original repository.
+Logically ring is an infinity queue of messages passing through the p2p node. Of cause actually, there is no infinity queue. There is a cycle-buffer containing a limited count of messages. Also, the ring contains hashes of all passed and not expired messages to prevent double passing. ChatAPI and peers can enqueue new messages to the ring using the ring.enqueue function. Also, peers can get messages from the ring using ring.get function. 
+
+The ring.get function has one argument - index of the message. Since ring does not really contain all messages it returns the first presented message from specified index and index of the next message. So peers can iterate all messages from the ring starting from index 0. 
+
+When a peer connected to the p2p node, peer.broadcast goroutine starts to send messages from the ring starting at 0 to the connected peer. It has some performance problem and can be optimized, but for simple messaging service with small ring size, it's not so important. 
+
+The chat application which user uses to communicate over p2p can access to messages by that ChatAPI. It has two methods: ChatAPI.Post and ChatAPI.Poll. To starts gather messages user need to call ChatAPI.Pool('room to pool') firstly. It starts watcher for the selected room. Then the user can send messages to the room by ChatAPI.Post and getting messages by ChatAPI.Pool.
